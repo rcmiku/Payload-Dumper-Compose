@@ -74,7 +74,8 @@ object PayloadUtil {
             deltaArchiveManifest,
             dataOffset,
             deltaArchiveManifest.blockSize,
-            raf.length()
+            raf.length(),
+            true
         )
     }
 
@@ -118,7 +119,8 @@ object PayloadUtil {
             deltaArchiveManifest,
             dataOffset,
             deltaArchiveManifest.blockSize,
-            httpUtil.length()
+            httpUtil.length(),
+            false
         )
     }
 

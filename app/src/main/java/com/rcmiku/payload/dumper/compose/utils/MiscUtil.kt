@@ -1,9 +1,13 @@
 package com.rcmiku.payload.dumper.compose.utils
 
+import android.content.Context
+import android.net.Uri
+import android.provider.DocumentsContract
 import com.google.protobuf.ByteString
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
+import java.io.File
 
 object MiscUtil {
 
@@ -40,5 +44,25 @@ object MiscUtil {
             this < 1000 * 1000 * 1000 -> "%d MB".format(this / (1024 * 1024))
             else -> "%.2f GB".format(this / (1024.0 * 1024 * 1024))
         }
+    }
+
+    fun String.isReadable(): Boolean {
+        val file = File(this)
+        return file.exists() && file.canRead()
+    }
+
+    fun getRealPathFromUri(context: Context, uri: Uri): String? {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+            val docId = DocumentsContract.getDocumentId(uri)
+            val split = docId.split(":")
+            if (split.size == 2) {
+                val type = split[0]
+                val path = split[1]
+                if ("primary" == type) {
+                    return "/storage/emulated/0/$path"
+                }
+            }
+        }
+        return null
     }
 }

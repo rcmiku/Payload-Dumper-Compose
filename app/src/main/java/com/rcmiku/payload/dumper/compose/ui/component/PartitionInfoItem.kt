@@ -92,7 +92,7 @@ fun PartitionInfoItem(partitionInfo: PartitionInfo, onClick: () -> Unit, onDownl
                 },
             ) {
                 Text(
-                    text = stringResource(R.string.download),
+                    text = stringResource(R.string.dump),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold

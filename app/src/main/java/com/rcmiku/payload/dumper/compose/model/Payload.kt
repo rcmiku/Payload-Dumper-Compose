@@ -8,7 +8,8 @@ data class Payload(
     val deltaArchiveManifest: UpdateMetadata.DeltaArchiveManifest,
     val dataOffset: Long,
     val blockSize: Int,
-    val archiveSize: Long
+    val archiveSize: Long,
+    val isPath: Boolean
 )
 
 data class PayloadHeader(

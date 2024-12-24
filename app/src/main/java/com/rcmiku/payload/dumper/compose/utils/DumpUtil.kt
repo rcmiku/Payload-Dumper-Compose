@@ -6,47 +6,57 @@ import com.rcmiku.payload.dumper.compose.R
 import com.rcmiku.payload.dumper.compose.model.Payload
 import com.rcmiku.payload.dumper.compose.utils.AppContextUtil.context
 
+class DumpUtil {
 
-class DownloadUtil {
-
-    suspend fun download(
+    suspend fun dump(
         partitionName: String,
         payload: Payload,
+        isPath: Boolean,
         onProgressUpdate: (Long) -> Unit,
         onFailure: (Boolean) -> Unit,
     ) {
         Toast.makeText(
             context,
-            context.getString(R.string.start_download_message),
+            context.getString(R.string.start_dump_message),
             Toast.LENGTH_SHORT
         ).show()
 
         val appName = context.getString(R.string.app_name)
         val fileName = payload.fileName.removeSuffix(".zip")
-        val downloadDir =
+        val dumpDir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val outputDir = downloadDir.path + "/${appName}/${fileName}"
-        val downloadPath = downloadDir.name + "/" + appName + "/" + fileName
+        val outputDir = dumpDir.path + "/${appName}/${fileName}"
+        val dumpPath = dumpDir.name + "/" + appName + "/" + fileName
 
         kotlin.runCatching {
             payload.deltaArchiveManifest.partitionsList?.forEach {
                 if (it.partitionName == partitionName)
-                    if (downloadDir != null) {
-                        PayloadUtil.extractPartition(
-                            it,
-                            HttpUtil,
-                            outputDir,
-                            payload,
-                            onProgressUpdate
-                        )
+                    if (dumpDir != null) {
+                        if (!isPath) {
+                            PayloadUtil.extractPartition(
+                                it,
+                                HttpUtil,
+                                outputDir,
+                                payload,
+                                onProgressUpdate
+                            )
+                        } else {
+                            PayloadUtil.extractPartition(
+                                it,
+                                RandomAccessFileUtil.raf,
+                                outputDir,
+                                payload,
+                                onProgressUpdate
+                            )
+                        }
                     }
             }
         }.onSuccess {
             Toast.makeText(
                 context,
                 context.getString(
-                    R.string.download_success_message,
-                    downloadPath
+                    R.string.dump_success_message,
+                    dumpPath
                 ),
                 Toast.LENGTH_SHORT
             ).show()

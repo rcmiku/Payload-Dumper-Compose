@@ -2,9 +2,9 @@
 <resources>
     <string name="app_name">Payload Dumper</string>
     <string name="ota_url">OTA URL</string>
-    <string name="submit">Submit</string>
-    <string name="submit_message">Start Parsing</string>
-    <string name="submit_success_message">Parsing Successful</string>
+    <string name="parse">Parse</string>
+    <string name="parse_message">Start Parsing</string>
+    <string name="parse_success_message">Parsing Successful</string>
     <string name="url_error_message">URL is empty or in incorrect format</string>
     <string name="ota_info">OTA Info</string>
     <string name="image_list">Image List</string>
@@ -13,9 +13,9 @@
     <string name="image_size">Image Size</string>
     <string name="raw_size">Uncompressed Size</string>
     <string name="image_sha256">SHA256</string>
-    <string name="start_download_message">Start Download</string>
-    <string name="download">Dump</string>
-    <string name="download_success_message">Download Successful: %s</string>
+    <string name="start_dump_message">Start Dump</string>
+    <string name="dump">Dump</string>
+    <string name="dump_success_message">Dump Successful: %s</string>
     <string name="done">Done</string>
     <string name="about_dialog_title">About</string>
     <string name="source_code">Source Code:&#160;</string>
@@ -25,4 +25,9 @@
     <string name="file_size">File Size</string>
     <string name="security_patch_level">Security Patch Level</string>
     <string name="file_name">File Name</string>
+    <string name="from_local">From Local</string>
+    <string name="from_url">From URL</string>
+    <string name="input">Input</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
 </resources>

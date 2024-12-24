@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 class PreferencesUtil {
     private var context = AppContextUtil.context
     private val sharedPreferences: SharedPreferences? =
-        context.getSharedPreferences("HqIcon", Context.MODE_PRIVATE)
+        context.getSharedPreferences("PayloadDumper", Context.MODE_PRIVATE)
 
     fun perfSet(key: String, value: String) {
         sharedPreferences?.edit()?.putString(key, value)?.apply()
