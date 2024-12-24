@@ -6,7 +6,7 @@
     <string name="submit_message">开始解析</string>
     <string name="submit_success_message">解析成功</string>
     <string name="url_error_message">URL 为空或格式错误</string>
-    <string name="ota_info">ROM 信息</string>
+    <string name="ota_info">OTA 信息</string>
     <string name="image_list">镜像列表</string>
     <string name="image_info">镜像详情</string>
     <string name="image_name">镜像名称</string>
@@ -22,4 +22,7 @@
     <string name="developer">开发者：</string>
     <string name="author">rcmiku</string>
     <string name="app_info">Dump Android Payload from OTA URL</string>
+    <string name="file_size">文件大小</string>
+    <string name="security_patch_level">安全补丁等级</string>
+    <string name="file_name">文件名</string>
 </resources>

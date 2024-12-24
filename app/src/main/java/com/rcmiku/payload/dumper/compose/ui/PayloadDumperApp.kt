@@ -153,17 +153,16 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
             }
             item {
                 if (payloadState.value != null) {
-                    Column {
-                        SmallTitle(stringResource(R.string.ota_info))
+                    Column(Modifier.padding(top = 12.dp)) {
                         archiveInfo.value?.let {
                             RomInfoCard(archiveInfo = it)
                         }
-                        SmallTitle(stringResource(R.string.image_list))
                     }
                 }
             }
             item {
                 if (partitionInfoList.value.isNotEmpty()) {
+                    SmallTitle(stringResource(R.string.image_list))
                     Column(
                         modifier = Modifier
                             .padding(horizontal = 12.dp)

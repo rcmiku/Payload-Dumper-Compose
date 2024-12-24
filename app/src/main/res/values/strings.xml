@@ -6,7 +6,7 @@
     <string name="submit_message">Start Parsing</string>
     <string name="submit_success_message">Parsing Successful</string>
     <string name="url_error_message">URL is empty or in incorrect format</string>
-    <string name="ota_info">ROM Info</string>
+    <string name="ota_info">OTA Info</string>
     <string name="image_list">Image List</string>
     <string name="image_info">Image Details</string>
     <string name="image_name">Image Name</string>
@@ -22,4 +22,7 @@
     <string name="developer">Developer:&#160;</string>
     <string name="author">rcmiku</string>
     <string name="app_info">Dump Android Payload from OTA URL</string>
+    <string name="file_size">File Size</string>
+    <string name="security_patch_level">Security Patch Level</string>
+    <string name="file_name">File Name</string>
 </resources>
