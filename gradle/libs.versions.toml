@@ -15,7 +15,7 @@ miuix = "0.3.2"
 haze = "1.1.0"
 protobufKotlinLite = "4.29.1"
 xz = "1.10"
-accompanist = "0.36.0"
+accompanist = "0.37.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
