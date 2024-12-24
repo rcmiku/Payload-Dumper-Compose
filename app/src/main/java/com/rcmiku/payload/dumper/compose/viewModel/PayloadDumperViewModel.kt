@@ -1,6 +1,5 @@
 package com.rcmiku.payload.dumper.compose.viewModel
 
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rcmiku.payload.dumper.compose.model.ArchiveInfo
@@ -9,16 +8,20 @@ import com.rcmiku.payload.dumper.compose.model.Payload
 import com.rcmiku.payload.dumper.compose.utils.PayloadUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class PayloadDumperViewModel : ViewModel() {
 
     private val _partitionInfoList = MutableStateFlow<List<PartitionInfo>>(emptyList())
-    val partitionInfoList: StateFlow<List<PartitionInfo>> = _partitionInfoList
+    private val _cachePartitionInfoList = MutableStateFlow<List<PartitionInfo>>(emptyList())
+    val cachePartitionInfoList: StateFlow<List<PartitionInfo>> = _cachePartitionInfoList
     private var _archiveInfo = MutableStateFlow<ArchiveInfo?>(null)
     val archiveInfo: StateFlow<ArchiveInfo?> = _archiveInfo
     private var _payload = MutableStateFlow<Payload?>(null)
     val payload: StateFlow<Payload?> = _payload
+    private val _search = MutableStateFlow("")
+    val search: StateFlow<String> = _search
 
     fun initPayloadDumper(payload: Payload) {
         viewModelScope.launch {
@@ -29,27 +32,47 @@ class PayloadDumperViewModel : ViewModel() {
                 payload.deltaArchiveManifest.securityPatchLevel
             )
             _partitionInfoList.value = PayloadUtil.getPartitionInfoList(payload)
+            _cachePartitionInfoList.value = _partitionInfoList.value
         }
     }
 
-    fun updateProgress(index: Int, progress: Float) {
-        _partitionInfoList.value.let { currentList ->
-            if (index in currentList.indices) {
-                val updatedList = currentList.toMutableStateList()
-                updatedList[index] = updatedList[index].copy(progress = progress)
-                _partitionInfoList.value = updatedList
+    fun updateProgress(partitionName: String, progress: Float) {
+        _partitionInfoList.value = _partitionInfoList.value.map {
+            if (it.partitionName == partitionName) {
+                it.copy(progress = progress)
+            } else {
+                it
             }
         }
     }
 
-    fun updateDownloadState(index: Int, isDownloading: Boolean) {
-        _partitionInfoList.value.let { currentList ->
-            if (index in currentList.indices) {
-                val updatedList = currentList.toMutableStateList()
-                updatedList[index] = updatedList[index].copy(isDownloading = isDownloading)
-                _partitionInfoList.value = updatedList
+    fun updateDownloadState(partitionName: String, isDownloading: Boolean) {
+        _partitionInfoList.value = _partitionInfoList.value.map {
+            if (it.partitionName == partitionName) {
+                it.copy(isDownloading = isDownloading)
+            } else {
+                it
             }
         }
     }
 
+    fun updateSearch(partitionName: String) {
+        _search.value = partitionName
+    }
+
+    private fun updateBySearch() {
+        viewModelScope.launch {
+            combine(_partitionInfoList, _search) { partitionList, search ->
+                partitionList.filter {
+                    if (search.isNotEmpty()) it.partitionName.contains(search) else true
+                }
+            }.collect { filterList ->
+                _cachePartitionInfoList.value = filterList
+            }
+        }
+    }
+
+    init {
+        updateBySearch()
+    }
 }

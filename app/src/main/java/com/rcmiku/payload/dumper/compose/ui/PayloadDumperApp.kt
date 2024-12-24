@@ -3,6 +3,7 @@ package com.rcmiku.payload.dumper.compose.ui
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,10 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,13 +54,18 @@ import top.yukonga.miuix.kmp.basic.Box
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.LazyColumn
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.extra.SuperArrow
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalHazeApi::class)
@@ -81,12 +89,14 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val pathOrUrl =
         rememberSaveable { mutableStateOf(PreferencesUtil().perfGet("pathOrUrl") ?: "") }
-    val partitionInfoList = viewModel.partitionInfoList.collectAsState()
+    val partitionInfoList = viewModel.cachePartitionInfoList.collectAsState()
     val archiveInfo = viewModel.archiveInfo.collectAsState()
     val payload = viewModel.payload.collectAsState()
     val selectedPartitionInfo = remember { mutableStateOf<PartitionInfo?>(null) }
     val showDialog = remember { mutableStateOf(false) }
     val showInputDialog = remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val searchValue = viewModel.search.collectAsState()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -128,77 +138,130 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
             contentPadding = padding
         ) {
             item {
-                Column(
+                SearchBar(
                     modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .padding(top = 12.dp)
+                        .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp),
+                    inputField = {
+                        InputField(
+                            query = searchValue.value,
+                            onQueryChange = {
+                                viewModel.updateSearch(it)
+                            },
+                            onSearch = {
+                                keyboardController?.hide()
+                            },
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+                            label = stringResource(R.string.search),
+                            leadingIcon = {
+                                Icon(
+                                    modifier = Modifier.padding(
+                                        start = 12.dp,
+                                        end = 8.dp,
+                                        top = 14.dp,
+                                        bottom = 14.dp
+                                    ),
+                                    imageVector = MiuixIcons.Search,
+                                    tint = MiuixTheme.colorScheme.onSurfaceContainer,
+                                    contentDescription = "Search"
+                                )
+                            },
+                        )
+                    },
+                    outsideRightAction = {
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .clickable(
+                                    interactionSource = null,
+                                    indication = null
+                                ) {
+                                    expanded = false
+                                    viewModel.updateSearch("")
+                                },
+                            text = stringResource(R.string.cancel),
+                            color = MiuixTheme.colorScheme.primary
+                        )
+                    },
+                    expanded = expanded,
+                    onExpandedChange = {
+                        expanded = it
+                    }
                 ) {
-                    Card(
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    ) {
-                        SuperArrow(
-                            leftAction = {
-                                Box(
-                                    contentAlignment = Alignment.TopStart,
-                                    modifier = Modifier.padding(end = 16.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_local),
-                                        contentDescription = "local",
-                                        tint = Color.Unspecified
-                                    )
-                                }
-                            },
-                            title = stringResource(R.string.from_local),
-                            onClick = {
-                                launcher.launch("application/zip")
-                            }
-                        )
-                        SuperArrow(
-                            leftAction = {
-                                Box(
-                                    contentAlignment = Alignment.TopStart,
-                                    modifier = Modifier.padding(end = 16.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_url),
-                                        contentDescription = "url",
-                                        tint = Color.Unspecified
-                                    )
-                                }
-                            },
-                            title = stringResource(R.string.from_url),
-                            onClick = {
-                                showInputDialog.value = true
-                            }
-                        )
-                    }
-
-                    if (pathOrUrl.value.isNotEmpty())
-                        InputInfoCard(pathOrUrl = pathOrUrl.value)
-
-                    Row(
+                }
+                if (!expanded) {
+                    Column(
                         modifier = Modifier
-                            .padding(top = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 12.dp)
                     ) {
-                        TextButton(
-                            modifier = Modifier.weight(1f),
-                            text = stringResource(R.string.parse),
-                            onClick = {
-                                coroutineScope.launch {
-                                    ParseUtil().parse(pathOrUrl = pathOrUrl.value,
-                                        onSuccess = { payloadTemp ->
-                                            viewModel.initPayloadDumper(payload = payloadTemp)
-                                            focusManager.clearFocus()
-                                            keyboardController?.hide()
-                                        })
+                        Card(
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        ) {
+                            SuperArrow(
+                                leftAction = {
+                                    Box(
+                                        contentAlignment = Alignment.TopStart,
+                                        modifier = Modifier.padding(end = 16.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_local),
+                                            contentDescription = "local",
+                                            tint = Color.Unspecified
+                                        )
+                                    }
+                                },
+                                title = stringResource(R.string.from_local),
+                                onClick = {
+                                    launcher.launch("application/zip")
                                 }
-                            },
-                            colors = ButtonDefaults.textButtonColorsPrimary()
-                        )
+                            )
+                            SuperArrow(
+                                leftAction = {
+                                    Box(
+                                        contentAlignment = Alignment.TopStart,
+                                        modifier = Modifier.padding(end = 16.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_url),
+                                            contentDescription = "url",
+                                            tint = Color.Unspecified
+                                        )
+                                    }
+                                },
+                                title = stringResource(R.string.from_url),
+                                onClick = {
+                                    showInputDialog.value = true
+                                }
+                            )
+                        }
+
+                        if (pathOrUrl.value.isNotEmpty())
+                            InputInfoCard(pathOrUrl = pathOrUrl.value)
+
+                        Row(
+                            modifier = Modifier
+                                .padding(top = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            TextButton(
+                                modifier = Modifier.weight(1f),
+                                text = stringResource(R.string.parse),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        ParseUtil().parse(pathOrUrl = pathOrUrl.value,
+                                            onSuccess = { payloadTemp ->
+                                                viewModel.initPayloadDumper(payload = payloadTemp)
+                                                focusManager.clearFocus()
+                                                keyboardController?.hide()
+                                            })
+                                    }
+                                },
+                                colors = ButtonDefaults.textButtonColorsPrimary()
+                            )
+                        }
+                        archiveInfo.value?.let { RomInfoCard(archiveInfo = it) }
                     }
-                    archiveInfo.value?.let { RomInfoCard(archiveInfo = it) }
                 }
                 if (partitionInfoList.value.isNotEmpty()) {
                     SmallTitle(stringResource(R.string.image_list))
@@ -215,7 +278,7 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                                     showDialog.value = true
                                 },
                                 onDownload = {
-                                    viewModel.updateDownloadState(index = index, true)
+                                    viewModel.updateDownloadState(partitionName = partitionInfo.partitionName, true)
                                     coroutineScope.launch {
                                         DumpUtil().dump(
                                             partitionName = partitionInfo.partitionName,
@@ -223,12 +286,12 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                                             isPath = payload.value!!.isPath,
                                             onProgressUpdate = { progress ->
                                                 viewModel.updateProgress(
-                                                    index = index,
+                                                    partitionName = partitionInfo.partitionName,
                                                     progress = progress / partitionInfo.size.toFloat()
                                                 )
                                             }, onFailure = { isDownload ->
                                                 viewModel.updateDownloadState(
-                                                    index = index,
+                                                    partitionName = partitionInfo.partitionName,
                                                     isDownload
                                                 )
                                             })

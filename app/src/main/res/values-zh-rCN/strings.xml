@@ -34,4 +34,5 @@
     <string name="permission_summary">解析本地 OTA 包需要访问存储</string>
     <string name="permission_granted">权限已授予</string>
     <string name="permission_not_granted">权限未授予</string>
+    <string name="search">搜索</string>
 </resources>
