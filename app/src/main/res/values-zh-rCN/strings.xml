@@ -30,4 +30,8 @@
     <string name="input">输入</string>
     <string name="cancel">取消</string>
     <string name="confirm">确定</string>
+    <string name="storage_permission_required">授予所有文件的管理权限</string>
+    <string name="permission_summary">解析本地 OTA 包需要访问存储</string>
+    <string name="permission_granted">权限已授予</string>
+    <string name="permission_not_granted">权限未授予</string>
 </resources>
