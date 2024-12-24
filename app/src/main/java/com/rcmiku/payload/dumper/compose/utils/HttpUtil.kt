@@ -3,6 +3,7 @@ package com.rcmiku.payload.dumper.compose.utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Headers
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.ResponseBody
@@ -21,6 +22,13 @@ object HttpUtil {
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor(Interceptor { chain ->
+            val originalRequest = chain.request()
+            val newRequest = originalRequest.newBuilder()
+                .header("User-Agent", "AndroidDownloadManager/15.0 (Linux; U; Android 15.0)")
+                .build()
+            chain.proceed(newRequest)
+        })
         .build()
 
     @Throws(IOException::class)
