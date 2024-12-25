@@ -3,6 +3,11 @@ package com.rcmiku.payload.dumper.compose.ui
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -189,7 +194,11 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                     }
                 ) {
                 }
-                if (!expanded) {
+                AnimatedVisibility(
+                    visible = !expanded,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
                     Column(
                         modifier = Modifier
                             .padding(horizontal = 12.dp)
@@ -249,7 +258,8 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                                 text = stringResource(R.string.parse),
                                 onClick = {
                                     coroutineScope.launch {
-                                        ParseUtil().parse(pathOrUrl = pathOrUrl.value,
+                                        ParseUtil().parse(
+                                            pathOrUrl = pathOrUrl.value,
                                             onSuccess = { payloadTemp ->
                                                 viewModel.initPayloadDumper(payload = payloadTemp)
                                                 focusManager.clearFocus()
@@ -270,7 +280,7 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                             .padding(horizontal = 12.dp)
                             .padding(bottom = 12.dp),
                     ) {
-                        partitionInfoList.value.forEachIndexed { index, partitionInfo ->
+                        partitionInfoList.value.forEach { partitionInfo ->
                             PartitionInfoItem(
                                 partitionInfo = partitionInfo,
                                 onClick = {
