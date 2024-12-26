@@ -25,7 +25,12 @@ object HttpUtil {
         .addInterceptor(Interceptor { chain ->
             val originalRequest = chain.request()
             val newRequest = originalRequest.newBuilder()
-                .header("User-Agent", "AndroidDownloadManager/15.0 (Linux; U; Android 15.0)")
+                .header(
+                    "User-Agent",
+                    if (PreferencesUtil().perfGetBoolean("isCustomUserAgentEnabled") == true)
+                        PreferencesUtil().perfGet("customUserAgent")
+                            ?: UserAgentUtil.DEFAULT_USER_AGENT else UserAgentUtil.DEFAULT_USER_AGENT
+                )
                 .build()
             chain.proceed(newRequest)
         })

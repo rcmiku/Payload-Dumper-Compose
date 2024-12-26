@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,12 +31,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.rcmiku.payload.dumper.compose.R
 import com.rcmiku.payload.dumper.compose.model.PartitionInfo
 import com.rcmiku.payload.dumper.compose.ui.component.AboutDialog
+import com.rcmiku.payload.dumper.compose.ui.component.CustomUserAgent
 import com.rcmiku.payload.dumper.compose.ui.component.InputDialog
 import com.rcmiku.payload.dumper.compose.ui.component.InputInfoCard
 import com.rcmiku.payload.dumper.compose.ui.component.PartitionDialog
@@ -59,19 +62,27 @@ import top.yukonga.miuix.kmp.basic.Box
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.LazyColumn
+import top.yukonga.miuix.kmp.basic.ListPopup
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.extra.DropdownImpl
 import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.icons.ImmersionMore
 import top.yukonga.miuix.kmp.icon.icons.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.MiuixPopupUtil.Companion.dismissPopup
 
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -100,7 +111,12 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
     val selectedPartitionInfo = remember { mutableStateOf<PartitionInfo?>(null) }
     val showDialog = remember { mutableStateOf(false) }
     val showInputDialog = remember { mutableStateOf(false) }
+    val showCustomUserAgentDialog = remember { mutableStateOf(false) }
+    val showAboutDialog = remember { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val showTopPopup = rememberSaveable { mutableStateOf(false) }
+    val isTopPopupExpanded = rememberSaveable { mutableStateOf(false) }
+    val dropdownOptions = stringArrayResource(R.array.dropdownOptions)
     val searchValue = viewModel.search.collectAsState()
 
     val launcher = rememberLauncherForActivityResult(
@@ -128,7 +144,49 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                     },
                 title = stringResource(R.string.app_name),
                 actions = {
-                    AboutDialog()
+                    if (isTopPopupExpanded.value) {
+                        ListPopup(
+                            show = showTopPopup,
+                            popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
+                            alignment = PopupPositionProvider.Align.TopRight,
+                            onDismissRequest = {
+                                isTopPopupExpanded.value = false
+                            }
+                        ) {
+                            ListPopupColumn {
+                                dropdownOptions.forEachIndexed { index, text ->
+                                    DropdownImpl(
+                                        text = text,
+                                        optionSize = dropdownOptions.size,
+                                        isSelected = false,
+                                        onSelectedIndexChange = {
+                                            dismissPopup(showTopPopup)
+                                            isTopPopupExpanded.value = false
+                                            when (index) {
+                                                0 -> showCustomUserAgentDialog.value = true
+                                                1 -> showAboutDialog.value = true
+                                            }
+                                        },
+                                        index = index
+                                    )
+                                }
+                            }
+                        }
+                        showTopPopup.value = true
+                    }
+                    IconButton(
+                        modifier = Modifier
+                            .padding(end = 18.dp)
+                            .size(40.dp),
+                        onClick = {
+                            isTopPopupExpanded.value = true
+                        }
+                    ) {
+                        Icon(
+                            imageVector = MiuixIcons.ImmersionMore,
+                            contentDescription = "Menu"
+                        )
+                    }
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -288,7 +346,10 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                                     showDialog.value = true
                                 },
                                 onDownload = {
-                                    viewModel.updateDownloadState(partitionName = partitionInfo.partitionName, true)
+                                    viewModel.updateDownloadState(
+                                        partitionName = partitionInfo.partitionName,
+                                        true
+                                    )
                                     coroutineScope.launch {
                                         DumpUtil().dump(
                                             partitionName = partitionInfo.partitionName,
@@ -314,6 +375,8 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
         }
     }
     InputDialog(showInputDialog, pathOrUrl)
+    CustomUserAgent(showCustomUserAgentDialog)
+    AboutDialog(showAboutDialog)
     selectedPartitionInfo.value?.let { PartitionDialog(showDialog, it) }
 }
 
