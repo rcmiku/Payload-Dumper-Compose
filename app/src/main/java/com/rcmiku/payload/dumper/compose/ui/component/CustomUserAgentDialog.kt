@@ -93,7 +93,10 @@ fun CustomUserAgent(
                 text = stringResource(R.string.confirm),
                 onClick = {
                     dismissDialog(showDialog)
-                    PreferencesUtil().perfSet("customUserAgent", customUserAgent.value)
+                    val userAgent = customUserAgent.value.ifBlank {
+                        UserAgentUtil.DEFAULT_USER_AGENT.also { customUserAgent.value = it }
+                    }
+                    PreferencesUtil().perfSet("customUserAgent", userAgent)
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.textButtonColorsPrimary()
