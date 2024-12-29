@@ -37,6 +37,7 @@
     <string name="search">搜索</string>
     <string name="custom_user_agent_setting">自定义UA设置</string>
     <string name="custom_user_agent">自定义UA</string>
+    <string name="clear">清除</string>
     <string-array name="dropdownOptions">
         <item>自定义UA</item>
         <item>关于</item>

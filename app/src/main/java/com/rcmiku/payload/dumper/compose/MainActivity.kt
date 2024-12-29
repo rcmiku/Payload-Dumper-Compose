@@ -41,7 +41,6 @@ class MainActivity : ComponentActivity() {
 
     private val manageFilesPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-
             if (isManageExternalStoragePermissionGranted()) {
                 Toast.makeText(this, getString(R.string.permission_granted), Toast.LENGTH_SHORT)
                     .show()

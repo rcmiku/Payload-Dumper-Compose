@@ -42,9 +42,9 @@ fun InputDialog(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             TextButton(
-                text = stringResource(R.string.cancel),
+                text = stringResource(R.string.clear),
                 onClick = {
-                    dismissDialog(showDialog)
+                    input.value = ""
                 },
                 modifier = Modifier.weight(1f)
             )
@@ -52,8 +52,10 @@ fun InputDialog(
             TextButton(
                 text = stringResource(R.string.confirm),
                 onClick = {
-                    dismissDialog(showDialog)
-                    url.value = input.value
+                    if (input.value.isNotBlank()) {
+                        dismissDialog(showDialog)
+                        url.value = input.value
+                    }
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.textButtonColorsPrimary()

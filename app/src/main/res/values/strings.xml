@@ -37,6 +37,7 @@
     <string name="search">Search</string>
     <string name="custom_user_agent_setting">Custom User-Agent Setting</string>
     <string name="custom_user_agent">Custom User-Agent</string>
+    <string name="clear">Clear</string>
     <string-array name="dropdownOptions">
         <item>Custom User-Agent</item>
         <item>About</item>

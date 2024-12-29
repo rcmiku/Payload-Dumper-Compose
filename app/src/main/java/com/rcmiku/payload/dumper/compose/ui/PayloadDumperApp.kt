@@ -8,6 +8,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -331,43 +334,53 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                         archiveInfo.value?.let { RomInfoCard(archiveInfo = it) }
                     }
                 }
-                if (partitionInfoList.value.isNotEmpty()) {
-                    SmallTitle(stringResource(R.string.image_list))
-                    Card(
-                        modifier = Modifier
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 12.dp),
-                    ) {
-                        partitionInfoList.value.forEach { partitionInfo ->
-                            PartitionInfoItem(
-                                partitionInfo = partitionInfo,
-                                onClick = {
-                                    selectedPartitionInfo.value = partitionInfo
-                                    showDialog.value = true
-                                },
-                                onDownload = {
-                                    viewModel.updateDownloadState(
-                                        partitionName = partitionInfo.partitionName,
-                                        true
-                                    )
-                                    coroutineScope.launch {
-                                        DumpUtil().dump(
+                AnimatedVisibility(
+                    visible = partitionInfoList.value.isNotEmpty(),
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
+                    Column {
+                        SmallTitle(stringResource(R.string.image_list))
+                        Column(
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .padding(bottom = 12.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MiuixTheme.colorScheme.surface,
+                                ),
+                        ) {
+                            partitionInfoList.value.forEach { partitionInfo ->
+                                PartitionInfoItem(
+                                    partitionInfo = partitionInfo,
+                                    onClick = {
+                                        selectedPartitionInfo.value = partitionInfo
+                                        showDialog.value = true
+                                    },
+                                    onDownload = {
+                                        viewModel.updateDownloadState(
                                             partitionName = partitionInfo.partitionName,
-                                            payload = payload.value!!,
-                                            isPath = payload.value!!.isPath,
-                                            onProgressUpdate = { progress ->
-                                                viewModel.updateProgress(
-                                                    partitionName = partitionInfo.partitionName,
-                                                    progress = progress / partitionInfo.size.toFloat()
-                                                )
-                                            }, onFailure = { isDownload ->
-                                                viewModel.updateDownloadState(
-                                                    partitionName = partitionInfo.partitionName,
-                                                    isDownload
-                                                )
-                                            })
-                                    }
-                                })
+                                            true
+                                        )
+                                        coroutineScope.launch {
+                                            DumpUtil().dump(
+                                                partitionName = partitionInfo.partitionName,
+                                                payload = payload.value!!,
+                                                isPath = payload.value!!.isPath,
+                                                onProgressUpdate = { progress ->
+                                                    viewModel.updateProgress(
+                                                        partitionName = partitionInfo.partitionName,
+                                                        progress = progress / partitionInfo.size.toFloat()
+                                                    )
+                                                }, onFailure = { isDownload ->
+                                                    viewModel.updateDownloadState(
+                                                        partitionName = partitionInfo.partitionName,
+                                                        isDownload
+                                                    )
+                                                })
+                                        }
+                                    })
+                            }
                         }
                     }
                 }
@@ -379,4 +392,3 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
     AboutDialog(showAboutDialog)
     selectedPartitionInfo.value?.let { PartitionDialog(showDialog, it) }
 }
-
