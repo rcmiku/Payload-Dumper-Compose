@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -54,14 +55,14 @@ import com.rcmiku.payload.dumper.compose.utils.ParseUtil
 import com.rcmiku.payload.dumper.compose.utils.PreferencesUtil
 import com.rcmiku.payload.dumper.compose.viewModel.PayloadDumperViewModel
 import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.Box
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -139,12 +140,11 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
             TopAppBar(
                 color = Color.Transparent,
                 modifier = Modifier
-                    .hazeChild(
-                        state = hazeState,
-                        style = hazeStyleTopAppBar
-                    ) {
-                        inputScale = HazeInputScale.Auto
-                    },
+                    .hazeEffect(state = hazeState,
+                        style = hazeStyleTopAppBar,
+                        block = fun HazeEffectScope.() {
+                            inputScale = HazeInputScale.Auto
+                        }),
                 title = stringResource(R.string.app_name),
                 actions = {
                     if (isTopPopupExpanded.value) {
@@ -199,7 +199,7 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxHeight()
-                .haze(state = hazeState),
+                .hazeSource(state = hazeState),
             topAppBarScrollBehavior = scrollBehavior,
             contentPadding = padding
         ) {
