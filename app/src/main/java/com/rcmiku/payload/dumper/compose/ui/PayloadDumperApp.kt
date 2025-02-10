@@ -8,7 +8,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,10 +15,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,7 +32,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -47,10 +48,13 @@ import com.rcmiku.payload.dumper.compose.ui.component.InputDialog
 import com.rcmiku.payload.dumper.compose.ui.component.InputInfoCard
 import com.rcmiku.payload.dumper.compose.ui.component.PartitionDialog
 import com.rcmiku.payload.dumper.compose.ui.component.PartitionInfoItem
+import com.rcmiku.payload.dumper.compose.ui.component.RequestPermissionDialog
 import com.rcmiku.payload.dumper.compose.ui.component.RomInfoCard
 import com.rcmiku.payload.dumper.compose.utils.AppContextUtil
 import com.rcmiku.payload.dumper.compose.utils.DumpUtil
+import com.rcmiku.payload.dumper.compose.utils.MiscUtil.getItemShape
 import com.rcmiku.payload.dumper.compose.utils.MiscUtil.getRealPathFromUri
+import com.rcmiku.payload.dumper.compose.utils.MiscUtil.isManageExternalStoragePermissionGranted
 import com.rcmiku.payload.dumper.compose.utils.ParseUtil
 import com.rcmiku.payload.dumper.compose.utils.PreferencesUtil
 import com.rcmiku.payload.dumper.compose.viewModel.PayloadDumperViewModel
@@ -109,7 +113,7 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val pathOrUrl =
         rememberSaveable { mutableStateOf(PreferencesUtil().perfGet("pathOrUrl") ?: "") }
-    val partitionInfoList = viewModel.cachePartitionInfoList.collectAsState()
+    val partitionInfoList by viewModel.cachePartitionInfoList.collectAsState()
     val archiveInfo = viewModel.archiveInfo.collectAsState()
     val payload = viewModel.payload.collectAsState()
     val selectedPartitionInfo = remember { mutableStateOf<PartitionInfo?>(null) }
@@ -117,6 +121,7 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
     val showInputDialog = remember { mutableStateOf(false) }
     val showCustomUserAgentDialog = remember { mutableStateOf(false) }
     val showAboutDialog = remember { mutableStateOf(false) }
+    val showRequestPermissionDialog = remember { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(false) }
     val showTopPopup = rememberSaveable { mutableStateOf(false) }
     val isTopPopupExpanded = rememberSaveable { mutableStateOf(false) }
@@ -283,7 +288,10 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                                 },
                                 title = stringResource(R.string.from_local),
                                 onClick = {
-                                    launcher.launch("application/zip")
+                                    if (isManageExternalStoragePermissionGranted())
+                                        launcher.launch("application/zip")
+                                    else
+                                        showRequestPermissionDialog.value = true
                                 }
                             )
                             SuperArrow(
@@ -334,55 +342,57 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                         archiveInfo.value?.let { RomInfoCard(archiveInfo = it) }
                     }
                 }
-                AnimatedVisibility(
-                    visible = partitionInfoList.value.isNotEmpty(),
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column {
-                        SmallTitle(stringResource(R.string.image_list))
-                        Column(
-                            modifier = Modifier
-                                .padding(horizontal = 12.dp)
-                                .padding(bottom = 12.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    MiuixTheme.colorScheme.surface,
-                                ),
-                        ) {
-                            partitionInfoList.value.forEach { partitionInfo ->
-                                PartitionInfoItem(
-                                    partitionInfo = partitionInfo,
-                                    onClick = {
-                                        selectedPartitionInfo.value = partitionInfo
-                                        showDialog.value = true
-                                    },
-                                    onDownload = {
+                if (partitionInfoList.isNotEmpty())
+                    SmallTitle(stringResource(R.string.image_list))
+            }
+
+            itemsIndexed(partitionInfoList) { index, partitionInfo ->
+                val shape = getItemShape(
+                    prevItem = partitionInfoList.getOrNull(index - 1),
+                    nextItem = partitionInfoList.getOrNull(index + 1),
+                    corner = 16.dp,
+                    subCorner = 4.dp
+                )
+                androidx.compose.material3.Card(
+                    shape = shape,
+                    modifier = Modifier
+                        .heightIn(min = 64.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 4.dp),
+                    colors = CardDefaults.cardColors()
+                        .copy(containerColor = MiuixTheme.colorScheme.surface)
+                )
+                {
+                    PartitionInfoItem(
+                        partitionInfo = partitionInfo,
+                        onClick = {
+                            selectedPartitionInfo.value = partitionInfo
+                            showDialog.value = true
+                        },
+                        onDownload = {
+                            viewModel.updateDownloadState(
+                                partitionName = partitionInfo.partitionName,
+                                true
+                            )
+                            coroutineScope.launch {
+                                DumpUtil().dump(
+                                    partitionName = partitionInfo.partitionName,
+                                    payload = payload.value!!,
+                                    isPath = payload.value!!.isPath,
+                                    onProgressUpdate = { progress ->
+                                        viewModel.updateProgress(
+                                            partitionName = partitionInfo.partitionName,
+                                            progress = progress / partitionInfo.size.toFloat()
+                                        )
+                                    }, onFailure = { isDownload ->
                                         viewModel.updateDownloadState(
                                             partitionName = partitionInfo.partitionName,
-                                            true
+                                            isDownload
                                         )
-                                        coroutineScope.launch {
-                                            DumpUtil().dump(
-                                                partitionName = partitionInfo.partitionName,
-                                                payload = payload.value!!,
-                                                isPath = payload.value!!.isPath,
-                                                onProgressUpdate = { progress ->
-                                                    viewModel.updateProgress(
-                                                        partitionName = partitionInfo.partitionName,
-                                                        progress = progress / partitionInfo.size.toFloat()
-                                                    )
-                                                }, onFailure = { isDownload ->
-                                                    viewModel.updateDownloadState(
-                                                        partitionName = partitionInfo.partitionName,
-                                                        isDownload
-                                                    )
-                                                })
-                                        }
                                     })
                             }
-                        }
-                    }
+                        })
                 }
             }
         }
@@ -390,5 +400,6 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
     InputDialog(showInputDialog, pathOrUrl)
     CustomUserAgent(showCustomUserAgentDialog)
     AboutDialog(showAboutDialog)
+    RequestPermissionDialog(showRequestPermissionDialog)
     selectedPartitionInfo.value?.let { PartitionDialog(showDialog, it) }
 }

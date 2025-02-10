@@ -2,7 +2,11 @@ package com.rcmiku.payload.dumper.compose.utils
 
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import android.provider.DocumentsContract
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import com.google.protobuf.ByteString
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.BufferedInputStream
@@ -51,6 +55,31 @@ object MiscUtil {
         return file.exists() && file.canRead()
     }
 
+    fun isManageExternalStoragePermissionGranted(): Boolean {
+        return Environment.isExternalStorageManager()
+    }
+
+    fun <T> getItemShape(
+        prevItem: T?,
+        nextItem: T?,
+        corner: Dp,
+        subCorner: Dp
+    ): Shape {
+        return when {
+            prevItem != null && nextItem != null -> RoundedCornerShape(subCorner)
+            prevItem == null && nextItem == null -> RoundedCornerShape(corner)
+            prevItem == null -> RoundedCornerShape(
+                topStart = corner, topEnd = corner,
+                bottomStart = subCorner, bottomEnd = subCorner
+            )
+
+            else -> RoundedCornerShape(
+                topStart = subCorner, topEnd = subCorner,
+                bottomStart = corner, bottomEnd = corner
+            )
+        }
+    }
+
     fun getRealPathFromUri(context: Context, uri: Uri): String? {
         if (DocumentsContract.isDocumentUri(context, uri)) {
             val docId = DocumentsContract.getDocumentId(uri)
@@ -59,7 +88,7 @@ object MiscUtil {
                 val type = split[0]
                 val path = split[1]
                 if ("primary" == type) {
-                    return "/storage/emulated/0/$path"
+                    return Environment.getExternalStorageDirectory().absolutePath + "/" + path
                 }
             }
         }
