@@ -31,7 +31,7 @@
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
     <string name="storage_permission_required">Grant all files access permission</string>
-    <string name="permission_summary">Access to storage is required to parse the local OTA package</string>
+    <string name="permission_summary">Manage external storage permission is required to parse the local OTA package and custom file save folder</string>
     <string name="permission_granted">Permission granted</string>
     <string name="permission_not_granted">Permission not granted</string>
     <string name="search">Search</string>
@@ -40,6 +40,7 @@
     <string name="clear">Clear</string>
     <string-array name="dropdownOptions">
         <item>Custom User-Agent</item>
+        <item>Custom File Save Folder</item>
         <item>About</item>
     </string-array>
 </resources>

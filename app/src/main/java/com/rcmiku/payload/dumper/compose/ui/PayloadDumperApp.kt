@@ -132,13 +132,26 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
             uri?.let {
-                pathOrUrl.value =
-                    getRealPathFromUri(context = AppContextUtil.context, uri).toString()
-                PreferencesUtil().perfSet("pathOrUrl", pathOrUrl.value)
+                getRealPathFromUri(context = AppContextUtil.context, uri)?.let { path ->
+                    pathOrUrl.value = path
+                    PreferencesUtil().perfSet("pathOrUrl", path)
+                }
             }
         }
     )
 
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        uri?.let {
+            getRealPathFromUri(context = AppContextUtil.context, uri)?.let { path ->
+                PreferencesUtil().perfSet(
+                    "customFolder",
+                    path
+                )
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -172,7 +185,14 @@ fun PayloadDumperApp(viewModel: PayloadDumperViewModel) {
                                             isTopPopupExpanded.value = false
                                             when (index) {
                                                 0 -> showCustomUserAgentDialog.value = true
-                                                1 -> showAboutDialog.value = true
+                                                1 -> {
+                                                    if (isManageExternalStoragePermissionGranted())
+                                                        folderPickerLauncher.launch(null)
+                                                    else
+                                                        showRequestPermissionDialog.value = true
+                                                }
+
+                                                2 -> showAboutDialog.value = true
                                             }
                                         },
                                         index = index

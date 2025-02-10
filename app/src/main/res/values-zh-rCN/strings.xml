@@ -31,7 +31,7 @@
     <string name="cancel">取消</string>
     <string name="confirm">确定</string>
     <string name="storage_permission_required">授予所有文件的管理权限</string>
-    <string name="permission_summary">解析本地 OTA 包需要访问存储</string>
+    <string name="permission_summary">自定义文件保存目录和解析本地 OTA 包需要所有文件访问权限</string>
     <string name="permission_granted">权限已授予</string>
     <string name="permission_not_granted">权限未授予</string>
     <string name="search">搜索</string>
@@ -40,6 +40,7 @@
     <string name="clear">清除</string>
     <string-array name="dropdownOptions">
         <item>自定义UA</item>
+        <item>自定义文件保存目录</item>
         <item>关于</item>
     </string-array>
 </resources>

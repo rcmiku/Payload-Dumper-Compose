@@ -25,7 +25,10 @@ class DumpUtil {
         val fileName = payload.fileName.removeSuffix(".zip")
         val dumpDir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val outputDir = dumpDir.path + "/${appName}/${fileName}"
+        val customPath = PreferencesUtil().perfGet("customFolder")?.let {
+            "$it/$fileName"
+        }
+        val outputDir = customPath ?: (dumpDir.path + "/${appName}/${fileName}")
         val dumpPath = dumpDir.name + "/" + appName + "/" + fileName
 
         kotlin.runCatching {

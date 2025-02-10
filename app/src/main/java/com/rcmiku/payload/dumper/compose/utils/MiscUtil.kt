@@ -91,6 +91,16 @@ object MiscUtil {
                     return Environment.getExternalStorageDirectory().absolutePath + "/" + path
                 }
             }
+        } else if (DocumentsContract.isTreeUri(uri)) {
+            val treeDocumentId = DocumentsContract.getTreeDocumentId(uri)
+            val split = treeDocumentId.split(":")
+            if (split.size == 2) {
+                val type = split[0]
+                val path = split[1]
+                if ("primary" == type) {
+                    return Environment.getExternalStorageDirectory().absolutePath + "/" + path
+                }
+            }
         }
         return null
     }
